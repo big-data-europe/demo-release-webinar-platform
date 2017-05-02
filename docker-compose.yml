@@ -2,12 +2,14 @@ version: '2.1'
 services:
   bde-demo:
     build: ./ui-integrator
+    container_name: bde-demo
     networks:
       - bde-demo
     environment:
       - VIRTUAL_HOST=demo.bde.aksw.org
   csswrapper:
     image: bde2020/nginx-proxy-with-css:latest
+    container_name: nginx
     ports:
       - "80:80"
     networks:
@@ -22,8 +24,6 @@ services:
       spark-master:
         condition: service_healthy
       namenode:
-        condition: service_healthy
-      spark-notebook:
         condition: service_healthy
       hue:
         condition: service_healthy
@@ -153,28 +153,6 @@ services:
     depends_on:
       spark-master:
         condition: service_healthy
-  spark-notebook:
-    image: bde2020/spark-notebook:2.1.0-hadoop2.8-hive
-    container_name: spark-notebook
-    expose:
-      - 9001
-    environment:
-      - SPARK_MASTER=spark://spark-master:7077
-      - VIRTUAL_HOST=spark-notebook.bde.aksw.org
-      - VIRTUAL_PORT=9001
-      - CSS_SOURCE=spark-master
-    networks:
-      - bde-demo
-    depends_on:
-      spark-master:
-        condition: service_healthy
-      spark-worker-1:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9001"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
   hue:
     image: bde2020/hdfs-filebrowser:3.11
     expose:

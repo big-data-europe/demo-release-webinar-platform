@@ -1,0 +1,28 @@
+# AKSW Servers do not have WS proxy, therefore notebook does not work there
+
+version: '2.1' 
+services:
+  spark-notebook:
+    image: bde2020/spark-notebook:2.1.0-hadoop2.8-hive
+    container_name: spark-notebook
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - VIRTUAL_HOST=spark-notebook.bde.aksw.org
+      - VIRTUAL_PORT=9001
+    networks:
+      - bde-demo
+    depends_on:
+      spark-master:
+        condition: service_healthy
+      spark-worker-1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9001"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+networks:
+  bde-demo:
+    external:
+      name: bde-demo

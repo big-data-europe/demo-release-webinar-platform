@@ -21,18 +21,9 @@
     "id": 3,
     "type": "user-interfaces",
     "attributes": {
-      "label": "Spark Notebook",
-      "base-url": "http://spark-notebook.bde.aksw.org/",
-      "append-path": ""
-    }
-  },
-  {
-    "id": 4,
-    "type": "user-interfaces",
-    "attributes": {
       "label": "HDFS",
       "base-url": "http://hdfsfs.bde.aksw.org/",
-      "append-path": ""
+      "append-path": "/home"
     }
   }
 ]
