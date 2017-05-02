@@ -6,3 +6,5 @@ make up
 ```
 
 For the application deployment see Makefile.
+
+The demo is available online on [Youtube](todo_link_to_youtube_here).
