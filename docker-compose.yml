@@ -1,0 +1,178 @@
+version: '2.1' 
+services:
+  bde-demo:
+    build: ./ui-integrator
+    networks:
+      - bde-demo
+    environment:
+      - VIRTUAL_HOST=demo.bde.aksw.org
+  csswrapper:
+    image: bde2020/nginx-proxy-with-css:latest
+    ports:
+      - "80:80"
+    networks:
+      - bde-demo
+    volumes:
+      - nginx-volume:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    environment:
+      - "constraint:node==akswnc4.aksw.uni-leipzig.de"
+      - DOCKER_HOST=tcp://172.18.160.16:4000
+  namenode:
+    image: bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8
+    container_name: namenode
+    expose:
+      - "50070"
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+    networks:
+      - bde-demo
+    environment:
+      - CLUSTER_NAME=test
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - CORE_CONF_hadoop_http_staticuser_user=root
+      - CORE_CONF_hadoop_proxyuser_hue_hosts=*
+      - CORE_CONF_hadoop_proxyuser_hue_groups=*
+      - HDFS_CONF_dfs_webhdfs_enabled=true
+      - HDFS_CONF_dfs_permissions_enabled=false
+      - VIRTUAL_HOST=namenode.bde.aksw.org
+      - VIRTUAL_PORT=50070
+      - CSS_SOURCE=hadoop
+  datanode-1:
+    image: bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8
+    expose:
+      - "50075"
+    volumes:
+      - hadoop_datanode_1:/hadoop/dfs/data
+    networks:
+      - bde-demo
+    environment:
+      - "constraint:node==akswnc4.aksw.uni-leipzig.de"
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - CORE_CONF_hadoop_http_staticuser_user=root
+      - CORE_CONF_hadoop_proxyuser_hue_hosts=*
+      - CORE_CONF_hadoop_proxyuser_hue_groups=*
+      - HDFS_CONF_dfs_webhdfs_enabled=true
+      - HDFS_CONF_dfs_permissions_enabled=false
+    depends_on:
+      namenode:
+        condition: service_healthy
+  datanode-2:
+    image: bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8
+    expose:
+      - "50075"
+    volumes:
+      - hadoop_datanode_2:/hadoop/dfs/data
+    networks:
+      - bde-demo
+    environment:
+      - "constraint:node==akswnc5.aksw.uni-leipzig.de"
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - CORE_CONF_hadoop_http_staticuser_user=root
+      - CORE_CONF_hadoop_proxyuser_hue_hosts=*
+      - CORE_CONF_hadoop_proxyuser_hue_groups=*
+      - HDFS_CONF_dfs_webhdfs_enabled=true
+      - HDFS_CONF_dfs_permissions_enabled=false
+    depends_on:
+      namenode:
+        condition: service_healthy
+  datanode-3:
+    image: bde2020/hadoop-datanode:1.1.0-hadoop2.8-java8
+    expose:
+      - "50075"
+    volumes:
+      - hadoop_datanode_3:/hadoop/dfs/data
+    networks:
+      - bde-demo
+    environment:
+      - "constraint:node==akswnc6.aksw.uni-leipzig.de"
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - CORE_CONF_hadoop_http_staticuser_user=root
+      - CORE_CONF_hadoop_proxyuser_hue_hosts=*
+      - CORE_CONF_hadoop_proxyuser_hue_groups=*
+      - HDFS_CONF_dfs_webhdfs_enabled=true
+      - HDFS_CONF_dfs_permissions_enabled=false
+    depends_on:
+      namenode:
+        condition: service_healthy
+  spark-master:
+    image: bde2020/spark-master:2.1.0-hadoop2.8-hive-java8
+    container_name: spark-master
+    environment:
+      - "constraint:node==akswnc4.aksw.uni-leipzig.de"
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - VIRTUAL_HOST=spark-master.bde.aksw.org
+      - VIRTUAL_PORT=8080
+      - CSS_SOURCE=spark-master
+    networks:
+      - bde-demo
+    depends_on:
+      namenode:
+        condition: service_healthy
+      datanode-1:
+        condition: service_healthy
+  spark-worker-1:
+    image: bde2020/spark-worker:2.1.0-hadoop2.8-hive-java8
+    environment:
+      - "constraint:node==akswnc4.aksw.uni-leipzig.de"
+      - SPARK_MASTER=spark://spark-master:7077
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    depends_on:
+      spark-master:
+        condition: service_healthy
+  spark-worker-2:
+    image: bde2020/spark-worker:2.1.0-hadoop2.8-hive-java8
+    environment:
+      - "constraint:node==akswnc5.aksw.uni-leipzig.de"
+      - SPARK_MASTER=spark://spark-master:7077
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    depends_on:
+      spark-master:
+        condition: service_healthy
+  spark-worker-3:
+    image: bde2020/spark-worker:2.1.0-hadoop2.8-hive-java8
+    environment:
+      - "constraint:node==akswnc6.aksw.uni-leipzig.de"
+      - SPARK_MASTER=spark://spark-master:7077
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    depends_on:
+      spark-master:
+        condition: service_healthy
+  spark-notebook:
+    image: bde2020/spark-notebook:2.1.0-hadoop2.8-hive
+    container_name: spark-notebook
+    expose:
+      - 9001
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - VIRTUAL_HOST=spark-notebook.bde.aksw.org
+      - VIRTUAL_PORT=9001
+      - CSS_SOURCE=spark-master
+    depends_on:
+      spark-master:
+        condition: service_healthy
+      spark-worker-1:
+        condition: service_healthy
+  hue:
+    image: bde2020/hdfs-filebrowser:3.11
+    expose:
+      - 8088
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - VIRTUAL_HOST=hdfsfs.bde.aksw.org
+      - VIRTUAL_PORT=8088
+      - CSS_SOURCE=hdfs
+    environment:
+      - NAMENODE_HOST=namenode
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode_1:
+  hadoop_datanode_2:
+  hadoop_datanode_3:
+  nginx-volume:
+
+networks:
+  bde-demo:
+    external:
+      name: bde-demo

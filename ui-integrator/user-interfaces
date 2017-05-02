@@ -1,0 +1,39 @@
+{ "data": [
+  {
+    "id": 1,
+    "type": "user-interfaces",
+    "attributes": {
+      "label": "Namenode",
+      "base-url": "http://namenode.bde.aksw.org/",
+      "append-path": ""
+    }
+  },
+  {
+    "id": 2,
+    "type": "user-interfaces",
+    "attributes": {
+      "label": "Spark Master",
+      "base-url": "http://spark-master.bde.aksw.org/",
+      "append-path": ""
+    }
+  },
+  {
+    "id": 3,
+    "type": "user-interfaces",
+    "attributes": {
+      "label": "Spark Notebook",
+      "base-url": "http://spark-notebook.bde.aksw.org/",
+      "append-path": ""
+    }
+  },
+  {
+    "id": 4,
+    "type": "user-interfaces",
+    "attributes": {
+      "label": "HDFS",
+      "base-url": "http://hdfsfs.bde.aksw.org/",
+      "append-path": ""
+    }
+  }
+]
+}
