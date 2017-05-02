@@ -1,4 +1,4 @@
-# bde-workbench-demo
+# BDE Release Demo
 
 This is a companion repository for a demo of platform deployment on InfAI cluster. To do the deployment:
 ```
