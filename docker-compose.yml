@@ -17,7 +17,16 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     environment:
       - "constraint:node==akswnc4.aksw.uni-leipzig.de"
-      - DOCKER_HOST=tcp://172.18.160.16:4000
+      - DOCKER_HOST=tcp://akswnc4.aksw.uni-leipzig.de:4000
+    depends_on:
+      spark-master:
+        condition: service_healthy
+      namenode:
+        condition: service_healthy
+      spark-notebook:
+        condition: service_healthy
+      hue:
+        condition: service_healthy
   namenode:
     image: bde2020/hadoop-namenode:1.1.0-hadoop2.8-java8
     container_name: namenode
@@ -117,6 +126,8 @@ services:
       - "constraint:node==akswnc4.aksw.uni-leipzig.de"
       - SPARK_MASTER=spark://spark-master:7077
       - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    networks:
+      - bde-demo
     depends_on:
       spark-master:
         condition: service_healthy
@@ -126,6 +137,8 @@ services:
       - "constraint:node==akswnc5.aksw.uni-leipzig.de"
       - SPARK_MASTER=spark://spark-master:7077
       - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    networks:
+      - bde-demo
     depends_on:
       spark-master:
         condition: service_healthy
@@ -135,6 +148,8 @@ services:
       - "constraint:node==akswnc6.aksw.uni-leipzig.de"
       - SPARK_MASTER=spark://spark-master:7077
       - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+    networks:
+      - bde-demo
     depends_on:
       spark-master:
         condition: service_healthy
@@ -148,22 +163,35 @@ services:
       - VIRTUAL_HOST=spark-notebook.bde.aksw.org
       - VIRTUAL_PORT=9001
       - CSS_SOURCE=spark-master
+    networks:
+      - bde-demo
     depends_on:
       spark-master:
         condition: service_healthy
       spark-worker-1:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9001"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
   hue:
     image: bde2020/hdfs-filebrowser:3.11
     expose:
       - 8088
     environment:
+      - NAMENODE_HOST=namenode
       - SPARK_MASTER=spark://spark-master:7077
       - VIRTUAL_HOST=hdfsfs.bde.aksw.org
       - VIRTUAL_PORT=8088
       - CSS_SOURCE=hdfs
-    environment:
-      - NAMENODE_HOST=namenode
+    networks:
+      - bde-demo
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8088"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
 
 volumes:
   hadoop_namenode:
