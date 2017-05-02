@@ -1,0 +1,18 @@
+version: "2.1"
+
+services:
+  app:
+    build: ./example-app
+    networks:
+      - bde-demo
+    environment:
+      SPARK_MASTER_NAME: spark-master
+      SPARK_MASTER_PORT: 7077
+      SPARK_APPLICATION_JAR_LOCATION: /app/spark-examples.jar
+      SPARK_APPLICATION_MAIN_CLASS: org.apache.spark.examples.JavaWordCount
+      SPARK_APPLICATION_ARGS: "hdfs://namenode:8020/user/hue/book.txt"
+
+networks:
+  bde-demo:
+    external:
+      name: bde-demo
