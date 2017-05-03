@@ -7,4 +7,4 @@ make up
 
 For the application deployment see Makefile.
 
-The demo is available online on [Youtube](todo_link_to_youtube_here).
+The demo is available online on [Youtube](https://www.youtube.com/watch?v=5T0OJ0Fi0OY).
